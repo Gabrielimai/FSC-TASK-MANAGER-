@@ -8,7 +8,7 @@ const app = express();
 
 connectToDatabase();
 
-app.get("/", (req, res) => {
+app.get("/tasks", (req, res) => {
     const tasks = [{ description: "Estudar Programação", isCompleted: false }];
     res.status(200).send(tasks);
 });
