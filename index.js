@@ -19,15 +19,16 @@ app.get("/tasks", async (req, res) => {
     }
 });
 
-app.get("/taks/:id", async (req, res) => {
+app.get("/tasks/:id", async (req, res) => {
     try {
         const taskId = req.params.id;
 
         const task = await TasksModel.findById(taskId);
 
-        if (!taskId) {
+        if (!task) {
             return res.status(404).send("Essa tarefa não foi encontrada.");
         }
+        return res.status(200).send(task);
     } catch (error) {
         res.status(500).send(error.message);
     }
