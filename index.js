@@ -10,6 +10,7 @@ app.use(express.json());
 
 connectToDatabase();
 
+// Pegando todas as tasks
 app.get("/tasks", async (req, res) => {
     try {
         const tasks = await TasksModel.find({});
@@ -19,6 +20,7 @@ app.get("/tasks", async (req, res) => {
     }
 });
 
+// Pegando uma task pelo Id
 app.get("/tasks/:id", async (req, res) => {
     try {
         const taskId = req.params.id;
@@ -34,6 +36,7 @@ app.get("/tasks/:id", async (req, res) => {
     }
 });
 
+// Criando uma task
 app.post("/tasks", async (req, res) => {
     try {
         const newTask = new TasksModel(req.body);
@@ -46,6 +49,36 @@ app.post("/tasks", async (req, res) => {
     }
 });
 
+//Atualizando uma task
+app.patch("/tasks/:id", async (req, res) => {
+    try {
+        const taskId = req.params.id; // Contem o id da task
+        const taskData = req.body; // Contem os dados da task
+
+        const taskToUpdate = await TasksModel.findById(taskId); // Pega a task
+
+        const allowedUpdates = ["isCompleted"]; // mapeou os campos que podemos atualizar
+        const requestedUpdates = Object.keys(req.body); // Pega os campus que o usuário quer atualizar
+
+        // Para cada campo que recebemos no body, verificamos se a lista de permitidos inclui esse campo.
+        for (update of requestedUpdates) {
+            if (allowedUpdates.includes(update)) {  // Verifica se está incluido nos campos permitidos para atualização
+                taskToUpdate[update] = taskData[update]; // Se for verdadeiro, significa que esse campo pode ser atualizado
+            } else {
+                return res
+                    .status(500)
+                    .send("Um ou mais campos inseridos, não são editáveis.");
+            }
+        }
+
+        await taskToUpdate.save();
+        return res.status(200).send(taskToUpdate);
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+});
+
+// Deletando uma task
 app.delete("/tasks/:id", async (req, res) => {
     try {
         const taskId = req.params.id;
