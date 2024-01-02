@@ -1,4 +1,5 @@
 const TasksModel = require("../models/task.model");
+const { notFoundError } = require("../errors/mongodb.error");
 
 class TaskController {
     constructor(req, res) {
@@ -22,10 +23,9 @@ class TaskController {
             const task = await TasksModel.findById(taskId);
 
             if (!task) {
-                return this.res
-                    .status(404)
-                    .send("Essa tarefa não foi encontrada.");
+                return notFoundError(this.res);
             }
+
             return this.res.status(200).send(task);
         } catch (error) {
             this.res.status(500).send(error.message);
@@ -44,16 +44,20 @@ class TaskController {
         }
     }
 
-    async getUpedate(){
+    async getUpedate() {
         try {
             const taskId = this.req.params.id; // Contem o id da task
             const taskData = this.req.body; // Contem os dados da task
-    
+
             const taskToUpdate = await TasksModel.findById(taskId); // Pega a task
-    
+
+            if (!taskToUpdate) {
+                return notFoundError(this.res);
+            }
+
             const allowedUpdates = ["isCompleted"]; // mapeou os campos que podemos atualizar
             const requestedUpdates = Object.keys(this.req.body); // Pega os campus que o usuário quer atualizar
-    
+
             // Para cada campo que recebemos no body, verificamos se a lista de permitidos inclui esse campo.
             for (const update of requestedUpdates) {
                 if (allowedUpdates.includes(update)) {
@@ -62,10 +66,12 @@ class TaskController {
                 } else {
                     return this.res
                         .status(500)
-                        .send("Um ou mais campos inseridos, não são editáveis.");
+                        .send(
+                            "Um ou mais campos inseridos, não são editáveis."
+                        );
                 }
             }
-    
+
             await taskToUpdate.save();
             return this.res.status(200).send(taskToUpdate);
         } catch (error) {
@@ -73,18 +79,18 @@ class TaskController {
         }
     }
 
-    async delete(){
+    async delete() {
         try {
             const taskId = this.req.params.id;
-    
+
             const taskToDelete = await TasksModel.findById(taskId);
-    
+
             if (!taskToDelete) {
-                return this.res.status(404).send("Essa tarefa não foi encontrada.");
+                return notFoundError(this.res);
             }
-    
+
             const deletedTask = await TasksModel.findByIdAndDelete(taskId);
-    
+
             this.res.status(200).send(deletedTask);
         } catch (error) {
             this.res.status(500).send(error.message);
